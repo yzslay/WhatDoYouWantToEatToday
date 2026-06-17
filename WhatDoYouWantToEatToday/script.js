@@ -9,10 +9,10 @@ const kiClashArena = document.getElementById('ki-clash-arena');
 const arenaHint = document.getElementById('arena-hint');
 const compareAdult = document.getElementById('compare-adult');
 const compareKid = document.getElementById('compare-kid');
-const clashCore = document.getElementById('clash-core');
 const clashVs = document.getElementById('clash-vs');
-const clashCountdown = document.getElementById('clash-countdown');
-const winnerReveal = document.getElementById('winner-reveal');
+const arenaStatusPanel = document.getElementById('arena-status-panel');
+const arenaCountdown = document.getElementById('arena-countdown');
+const arenaWinner = document.getElementById('arena-winner');
 const winnerLabel = document.getElementById('winner-label');
 const winnerPick = document.getElementById('winner-pick');
 
@@ -20,13 +20,15 @@ const defaultButtonText = '抽籤！';
 const drawingButtonText = '開獎中...';
 const loadingButtonText = '載入中...';
 const emptyMenuText = '尚未設定選單';
+const CLASH_WINDUP_MS = 1200;
 const COUNTDOWN_SECONDS = 5;
-const BEAM_PUSH_MS = 1400;
+const BEAM_PUSH_MS = 1500;
 
 let menuEntries = [];
 let adultResult = null;
 let kidResult = null;
 let battlePhase = 'idle';
+let windupTimer = null;
 let countdownTimer = null;
 let resolveTimer = null;
 
@@ -49,7 +51,15 @@ function formatPick(entry) {
     return `${entry.category} · ${entry.vendor}`;
 }
 
+function bothResultsReady() {
+    return Boolean(adultResult && kidResult);
+}
+
 function clearBattleTimers() {
+    if (windupTimer) {
+        clearTimeout(windupTimer);
+        windupTimer = null;
+    }
     if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
@@ -60,55 +70,100 @@ function clearBattleTimers() {
     }
 }
 
+function hideStatusPanel() {
+    arenaStatusPanel.classList.remove('show-countdown', 'show-winner');
+    arenaCountdown.textContent = '';
+    arenaCountdown.classList.remove('tick-pop');
+    arenaWinner.classList.remove('visible');
+}
+
+function showVsState() {
+    hideStatusPanel();
+    clashVs.hidden = false;
+}
+
+function showCountdownState(value) {
+    clashVs.hidden = true;
+    arenaStatusPanel.classList.remove('show-winner');
+    arenaStatusPanel.classList.add('show-countdown');
+    arenaCountdown.textContent = String(value);
+    arenaCountdown.classList.remove('tick-pop');
+    void arenaCountdown.offsetWidth;
+    arenaCountdown.classList.add('tick-pop');
+}
+
+function showWinnerState(winnerName, winnerEntry) {
+    clashVs.hidden = true;
+    arenaStatusPanel.classList.remove('show-countdown');
+    arenaStatusPanel.classList.add('show-winner');
+    winnerLabel.textContent = `${winnerName} 獲勝！`;
+    winnerPick.textContent = formatPick(winnerEntry);
+    arenaWinner.classList.remove('visible');
+    void arenaWinner.offsetWidth;
+    arenaWinner.classList.add('visible');
+}
+
+function syncArenaClasses() {
+    const adultReady = Boolean(adultResult);
+    const kidReady = Boolean(kidResult);
+    const bothReady = adultReady && kidReady;
+    const isClashing = battlePhase === 'clashing' || battlePhase === 'countdown' || battlePhase === 'resolving';
+
+    kiClashArena.classList.toggle('adult-ready', adultReady);
+    kiClashArena.classList.toggle('kid-ready', kidReady);
+    kiClashArena.classList.toggle('clash-active', bothReady && isClashing);
+    kiClashArena.classList.toggle('countdown-active', battlePhase === 'countdown');
+    kiClashArena.classList.toggle('clash-resolving', battlePhase === 'resolving');
+    kiClashArena.classList.toggle('battle-ended', battlePhase === 'ended');
+    kiClashArena.classList.toggle('adult-wins', battlePhase === 'resolving' || battlePhase === 'ended' ? kiClashArena.dataset.winner === 'adult' : false);
+    kiClashArena.classList.toggle('kid-wins', battlePhase === 'resolving' || battlePhase === 'ended' ? kiClashArena.dataset.winner === 'kid' : false);
+}
+
 function resetBattleResolution() {
     clearBattleTimers();
     battlePhase = 'idle';
-
-    kiClashArena.classList.remove(
-        'countdown-active',
-        'clash-resolving',
-        'battle-ended',
-        'adult-wins',
-        'kid-wins'
-    );
-
-    clashVs.hidden = false;
-    clashCountdown.hidden = true;
-    clashCountdown.textContent = String(COUNTDOWN_SECONDS);
-    clashCountdown.classList.remove('tick-pop');
-
-    winnerReveal.hidden = true;
-    winnerReveal.classList.remove('visible');
-    clashCore.classList.remove('prize-reveal');
+    delete kiClashArena.dataset.winner;
+    showVsState();
+    syncArenaClasses();
 }
 
-function showCenterCountdown(value) {
-    clashVs.hidden = true;
-    winnerReveal.hidden = true;
-    clashCountdown.hidden = false;
-    clashCountdown.textContent = String(value);
-    clashCountdown.classList.remove('tick-pop');
-    void clashCountdown.offsetWidth;
-    clashCountdown.classList.add('tick-pop');
+function resolveBattle() {
+    const adultWins = Math.random() < 0.5;
+    const winnerSide = adultWins ? 'adult' : 'kid';
+    const winnerEntry = adultWins ? adultResult : kidResult;
+    const winnerName = adultWins ? '大人' : '小朋友';
+
+    battlePhase = 'resolving';
+    kiClashArena.dataset.winner = winnerSide;
+    syncArenaClasses();
+    arenaHint.textContent = '勝負揭曉！氣功波衝向落敗方！';
+
+    resolveTimer = setTimeout(() => {
+        battlePhase = 'ended';
+        syncArenaClasses();
+        showWinnerState(winnerName, winnerEntry);
+        arenaHint.textContent = `今晚就吃 ${formatPick(winnerEntry)}！`;
+    }, BEAM_PUSH_MS);
 }
 
-function startBattleCountdown() {
-    if (battlePhase !== 'idle') {
+function startCountdown() {
+    if (battlePhase !== 'clashing') {
         return;
     }
 
     battlePhase = 'countdown';
-    kiClashArena.classList.add('countdown-active');
+    syncArenaClasses();
 
     let remaining = COUNTDOWN_SECONDS;
-    showCenterCountdown(remaining);
-    arenaHint.textContent = '氣功對轟中！倒數判定勝負…';
+    showCountdownState(remaining);
+    arenaHint.textContent = `倒數 ${remaining} 秒判定勝負！`;
 
     countdownTimer = setInterval(() => {
         remaining -= 1;
 
         if (remaining > 0) {
-            showCenterCountdown(remaining);
+            showCountdownState(remaining);
+            arenaHint.textContent = `倒數 ${remaining} 秒判定勝負！`;
             return;
         }
 
@@ -118,34 +173,20 @@ function startBattleCountdown() {
     }, 1000);
 }
 
-function resolveBattle() {
-    const adultWins = Math.random() < 0.5;
-    const winnerEntry = adultWins ? adultResult : kidResult;
-    const winnerName = adultWins ? '大人' : '小朋友';
+function beginBattleSequence() {
+    if (battlePhase !== 'idle' || !bothResultsReady()) {
+        return;
+    }
 
-    battlePhase = 'resolving';
-    kiClashArena.classList.remove('countdown-active');
-    kiClashArena.classList.add('clash-resolving', adultWins ? 'adult-wins' : 'kid-wins');
+    battlePhase = 'clashing';
+    syncArenaClasses();
+    showVsState();
+    arenaHint.textContent = `${formatPick(adultResult)} 與 ${formatPick(kidResult)} 氣功對轟中！`;
 
-    clashCountdown.hidden = true;
-    clashVs.hidden = true;
-    arenaHint.textContent = '勝負揭曉！氣功波衝向落敗方！';
-
-    resolveTimer = setTimeout(() => {
-        battlePhase = 'resolved';
-        kiClashArena.classList.remove('clash-active', 'clash-resolving');
-        kiClashArena.classList.add('battle-ended');
-
-        winnerLabel.textContent = `${winnerName} 獲勝！`;
-        winnerPick.textContent = formatPick(winnerEntry);
-        winnerReveal.hidden = false;
-        winnerReveal.classList.remove('visible');
-        void winnerReveal.offsetWidth;
-        winnerReveal.classList.add('visible');
-        clashCore.classList.add('prize-reveal');
-
-        arenaHint.textContent = `今晚就吃 ${formatPick(winnerEntry)}！`;
-    }, BEAM_PUSH_MS);
+    windupTimer = setTimeout(() => {
+        windupTimer = null;
+        startCountdown();
+    }, CLASH_WINDUP_MS);
 }
 
 function updateBattleCompare() {
@@ -157,20 +198,18 @@ function updateBattleCompare() {
         resetBattleResolution();
     }
 
-    kiClashArena.classList.toggle('adult-ready', adultReady);
-    kiClashArena.classList.toggle('kid-ready', kidReady);
-    kiClashArena.classList.toggle('clash-active', bothReady && battlePhase === 'idle');
-
     compareAdult.textContent = adultResult ? adultResult.category : '？';
     compareKid.textContent = kidResult ? kidResult.category : '？';
 
-    if (battlePhase === 'countdown' || battlePhase === 'resolving' || battlePhase === 'resolved') {
+    if (battlePhase !== 'idle') {
+        syncArenaClasses();
         return;
     }
 
+    syncArenaClasses();
+
     if (bothReady) {
-        arenaHint.textContent = `${formatPick(adultResult)} 與 ${formatPick(kidResult)} 氣功對轟中！`;
-        startBattleCountdown();
+        beginBattleSequence();
         return;
     }
 

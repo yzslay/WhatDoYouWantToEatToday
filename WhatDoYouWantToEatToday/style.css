@@ -100,6 +100,12 @@ body::before {
     overflow: hidden;
 }
 
+.ki-clash-arena.countdown-active,
+.ki-clash-arena.clash-resolving,
+.ki-clash-arena.battle-ended {
+    overflow: visible;
+}
+
 .arena-title {
     margin: 0 0 16px;
     font-size: clamp(1.5rem, 4.5vw, 2rem);
@@ -249,12 +255,6 @@ body::before {
     justify-content: center;
 }
 
-.clash-core.prize-reveal {
-    width: min(92vw, 320px);
-    height: auto;
-    min-height: 120px;
-}
-
 .clash-burst {
     position: absolute;
     inset: 8px;
@@ -294,37 +294,63 @@ body::before {
         -1px -1px 0 #1a2a4a;
 }
 
-.clash-countdown {
-    position: relative;
-    z-index: 4;
-    font-size: 2.4rem;
+.arena-status-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 12;
+    width: min(88vw, 300px);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.arena-status-panel.show-countdown,
+.arena-status-panel.show-winner {
+    display: flex;
+}
+
+.arena-countdown {
+    margin: 0;
+    font-size: clamp(3rem, 12vw, 4.5rem);
     font-weight: 900;
     line-height: 1;
     color: #ffeb3b;
     text-shadow:
-        0 0 16px rgba(255, 235, 59, 0.95),
-        0 0 28px rgba(255, 87, 34, 0.75),
-        2px 2px 0 #bf360c;
+        0 0 20px rgba(255, 235, 59, 0.95),
+        0 0 36px rgba(255, 87, 34, 0.85),
+        3px 3px 0 #bf360c;
 }
 
-.clash-countdown.tick-pop {
+.arena-countdown.tick-pop {
     animation: countdownPop 0.45s ease-out;
 }
 
-.winner-reveal {
-    position: relative;
-    z-index: 5;
-    display: flex;
+.arena-winner {
+    display: none;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 10px;
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 3px solid rgba(255, 235, 59, 0.85);
+    background: linear-gradient(180deg, rgba(26, 42, 74, 0.96), rgba(15, 26, 48, 0.98));
+    box-shadow:
+        0 0 28px rgba(255, 235, 59, 0.45),
+        0 0 48px rgba(255, 87, 34, 0.35);
     opacity: 0;
-    transform: scale(0.6);
+    transform: scale(0.55);
 }
 
-.winner-reveal.visible {
-    animation: winnerReveal 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+.arena-status-panel.show-winner .arena-winner {
+    display: flex;
+}
+
+.arena-winner.visible {
+    animation: winnerReveal 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
 }
 
 .winner-badge {
@@ -482,6 +508,10 @@ body::before {
     opacity: 0;
 }
 
+.ki-clash-arena.countdown-active .arena-status-panel {
+    filter: drop-shadow(0 0 16px rgba(255, 235, 59, 0.65));
+}
+
 .ki-clash-arena.countdown-active .arena-hint {
     color: #ffeb3b;
     text-shadow: 0 0 10px rgba(255, 235, 59, 0.65);
@@ -556,6 +586,10 @@ body::before {
     color: #ffeb3b;
     font-size: 1rem;
     text-shadow: 0 0 12px rgba(255, 235, 59, 0.75);
+}
+
+.ki-clash-arena.battle-ended .clash-vs {
+    opacity: 0;
 }
 
 /* 拉霸顯示窗：內凹陰影 */
@@ -825,6 +859,10 @@ body::before {
     .clash-core {
         order: 2;
         margin: 4px auto;
+    }
+
+    .arena-status-panel {
+        width: min(92vw, 280px);
     }
 
     .fighter-side {
