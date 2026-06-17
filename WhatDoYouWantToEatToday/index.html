@@ -12,7 +12,6 @@
         <header class="brand-header">
             <h1 class="brand-title">用餐一番賞</h1>
             <p class="brand-tagline">DINING KUJI</p>
-            <p class="subtitle">大人、小朋友各抽一種料理，開獎後顯示推薦店家！</p>
         </header>
 
         <div class="slot-machine">
@@ -58,7 +57,13 @@
                     <span class="clash-ring clash-ring-1"></span>
                     <span class="clash-ring clash-ring-2"></span>
                     <span class="clash-burst"></span>
-                    <span class="clash-vs">VS</span>
+                    <span id="clash-vs" class="clash-vs">VS</span>
+                    <span id="clash-countdown" class="clash-countdown" hidden>5</span>
+                    <div id="winner-reveal" class="winner-reveal" hidden>
+                        <span class="winner-badge">★ 開獎 ★</span>
+                        <span id="winner-label" class="winner-label"></span>
+                        <span id="winner-pick" class="winner-pick"></span>
+                    </div>
                     <span class="clash-spark clash-spark-1"></span>
                     <span class="clash-spark clash-spark-2"></span>
                     <span class="clash-spark clash-spark-3"></span>
