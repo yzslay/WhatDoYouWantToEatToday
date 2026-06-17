@@ -51,8 +51,20 @@ function formatPick(entry) {
     return `${entry.category} · ${entry.vendor}`;
 }
 
+function isSameEntry(a, b) {
+    return Boolean(a && b && a.category === b.category && a.vendor === b.vendor);
+}
+
+function getAvailableEntries(excludeEntry) {
+    if (!excludeEntry) {
+        return menuEntries;
+    }
+
+    return menuEntries.filter((entry) => !isSameEntry(entry, excludeEntry));
+}
+
 function bothResultsReady() {
-    return Boolean(adultResult && kidResult);
+    return Boolean(adultResult && kidResult && !isSameEntry(adultResult, kidResult));
 }
 
 function clearBattleTimers() {
@@ -174,7 +186,12 @@ function startCountdown() {
 }
 
 function beginBattleSequence() {
-    if (battlePhase !== 'idle' || !bothResultsReady()) {
+    if (battlePhase !== 'idle' || !adultResult || !kidResult) {
+        return;
+    }
+
+    if (isSameEntry(adultResult, kidResult)) {
+        arenaHint.textContent = '兩邊選到一樣了！請其中一方重新抽籤（不可重複）';
         return;
     }
 
@@ -209,21 +226,26 @@ function updateBattleCompare() {
     syncArenaClasses();
 
     if (bothReady) {
+        if (isSameEntry(adultResult, kidResult)) {
+            arenaHint.textContent = '兩邊選到一樣了！請其中一方重新抽籤（不可重複）';
+            return;
+        }
+
         beginBattleSequence();
         return;
     }
 
     if (adultReady) {
-        arenaHint.textContent = '大人已蓄氣！等小朋友開獎後對轟！';
+        arenaHint.textContent = '大人已蓄氣！等小朋友開獎（不可選相同料理）';
         return;
     }
 
     if (kidReady) {
-        arenaHint.textContent = '小朋友已蓄氣！等大人開獎後對轟！';
+        arenaHint.textContent = '小朋友已蓄氣！等大人開獎（不可選相同料理）';
         return;
     }
 
-    arenaHint.textContent = '兩邊都開獎後，氣功對轟開始！';
+    arenaHint.textContent = '兩邊各抽一種料理，不可重複，開獎後氣功對決！';
 }
 
 function setButtonsEnabled(enabled) {
@@ -268,7 +290,11 @@ async function loadMenuEntries() {
     }
 }
 
-function runSlotMachine(entryArray, displayElement, vendorElement, cardElement, buttonElement, onComplete) {
+function runSlotMachine(entryPool, displayElement, vendorElement, cardElement, buttonElement, onComplete) {
+    if (entryPool.length === 0) {
+        return false;
+    }
+
     buttonElement.disabled = true;
     buttonElement.textContent = drawingButtonText;
     cardElement.classList.remove('winner');
@@ -280,16 +306,16 @@ function runSlotMachine(entryArray, displayElement, vendorElement, cardElement, 
     const spinInterval = 60;
 
     const timer = setInterval(() => {
-        const randomIndex = Math.floor(Math.random() * entryArray.length);
-        displayElement.textContent = entryArray[randomIndex].category;
+        const randomIndex = Math.floor(Math.random() * entryPool.length);
+        displayElement.textContent = entryPool[randomIndex].category;
         counter += spinInterval;
 
         if (counter >= duration) {
             clearInterval(timer);
             displayElement.classList.remove('spinning');
 
-            const finalIndex = Math.floor(Math.random() * entryArray.length);
-            const finalEntry = entryArray[finalIndex];
+            const finalIndex = Math.floor(Math.random() * entryPool.length);
+            const finalEntry = entryPool[finalIndex];
             displayElement.textContent = finalEntry.category;
             vendorElement.textContent = finalEntry.vendor;
 
@@ -299,6 +325,38 @@ function runSlotMachine(entryArray, displayElement, vendorElement, cardElement, 
             onComplete(finalEntry);
         }
     }, spinInterval);
+
+    return true;
+}
+
+function startSpin(side) {
+    const isAdult = side === 'adult';
+    const otherResult = isAdult ? kidResult : adultResult;
+    const entryPool = getAvailableEntries(otherResult);
+    const card = document.querySelector(isAdult ? '.adult-card' : '.kid-card');
+    const displayElement = isAdult ? adultDisplay : kidDisplay;
+    const vendorElement = isAdult ? adultVendor : kidVendor;
+    const buttonElement = isAdult ? adultBtn : kidBtn;
+    const sideLabel = isAdult ? '大人' : '小朋友';
+    const otherLabel = isAdult ? '小朋友' : '大人';
+
+    if (entryPool.length === 0) {
+        arenaHint.textContent = `${sideLabel}沒有其他選項可抽了，請${otherLabel}重新抽籤！`;
+        return;
+    }
+
+    const started = runSlotMachine(
+        entryPool,
+        displayElement,
+        vendorElement,
+        card,
+        buttonElement,
+        (result) => handleSpinResult(side, result)
+    );
+
+    if (!started) {
+        arenaHint.textContent = `${sideLabel}沒有其他選項可抽了，請${otherLabel}重新抽籤！`;
+    }
 }
 
 function handleSpinResult(side, result) {
@@ -315,18 +373,7 @@ function handleSpinResult(side, result) {
     updateBattleCompare();
 }
 
-adultBtn.addEventListener('click', () => {
-    const card = document.querySelector('.adult-card');
-    runSlotMachine(menuEntries, adultDisplay, adultVendor, card, adultBtn, (result) => {
-        handleSpinResult('adult', result);
-    });
-});
-
-kidBtn.addEventListener('click', () => {
-    const card = document.querySelector('.kid-card');
-    runSlotMachine(menuEntries, kidDisplay, kidVendor, card, kidBtn, (result) => {
-        handleSpinResult('kid', result);
-    });
-});
+adultBtn.addEventListener('click', () => startSpin('adult'));
+kidBtn.addEventListener('click', () => startSpin('kid'));
 
 loadMenuEntries();
