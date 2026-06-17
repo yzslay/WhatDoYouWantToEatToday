@@ -3,30 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>週末用餐輪盤 🍕</title>
+    <title>用餐一番賞 · DINING KUJI</title>
+    <link rel="icon" href="Gemini_Generated_Image_sq3ilzsq3ilzsq3i.png" type="image/png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎰 週末用餐輪盤 一番賞 🎰</h1>
-        
+        <header class="brand-header">
+            <h1 class="brand-title">用餐一番賞</h1>
+            <p class="brand-tagline">DINING KUJI</p>
+            <p class="subtitle">大人、小朋友各抽一種料理，開獎後顯示推薦店家！</p>
+        </header>
+
         <div class="slot-machine">
             <div class="slot-card adult-card">
                 <h2>👨 大人吃什麼？</h2>
                 <div class="display-window">
-                    <div id="adult-display" class="food-text">？ ？ ？</div>
+                    <div class="display-content">
+                        <div id="adult-display" class="food-text">？ ？ ？</div>
+                        <div id="adult-vendor" class="vendor-text"></div>
+                    </div>
                 </div>
-                <button id="adult-btn" class="spin-btn">START 🚀</button>
+                <button id="adult-btn" class="spin-btn">抽籤！</button>
             </div>
 
             <div class="slot-card kid-card">
                 <h2>👦 小朋友吃什麼？</h2>
                 <div class="display-window">
-                    <div id="kid-display" class="food-text">？ ？ ？</div>
+                    <div class="display-content">
+                        <div id="kid-display" class="food-text">？ ？ ？</div>
+                        <div id="kid-vendor" class="vendor-text"></div>
+                    </div>
                 </div>
-                <button id="kid-btn" class="spin-btn">START 🎯</button>
+                <button id="kid-btn" class="spin-btn">抽籤！</button>
             </div>
         </div>
+
+        <section id="ki-clash-arena" class="ki-clash-arena" aria-label="氣功對決區">
+            <p class="arena-title">氣功對決</p>
+
+            <div class="ki-clash-stage">
+                <div class="fighter-side adult-side">
+                    <p class="fighter-label">大人</p>
+                    <p id="compare-adult" class="fighter-pick">？</p>
+                    <div class="beam-launcher beam-launcher-left" aria-hidden="true"></div>
+                </div>
+
+                <div class="ki-beam ki-beam-left" aria-hidden="true">
+                    <span class="beam-outer"></span>
+                    <span class="beam-core"></span>
+                </div>
+
+                <div id="clash-core" class="clash-core" aria-hidden="true">
+                    <span class="clash-ring clash-ring-1"></span>
+                    <span class="clash-ring clash-ring-2"></span>
+                    <span class="clash-burst"></span>
+                    <span class="clash-vs">VS</span>
+                    <span class="clash-spark clash-spark-1"></span>
+                    <span class="clash-spark clash-spark-2"></span>
+                    <span class="clash-spark clash-spark-3"></span>
+                    <span class="clash-spark clash-spark-4"></span>
+                </div>
+
+                <div class="ki-beam ki-beam-right" aria-hidden="true">
+                    <span class="beam-outer"></span>
+                    <span class="beam-core"></span>
+                </div>
+
+                <div class="fighter-side kid-side">
+                    <p class="fighter-label">小朋友</p>
+                    <p id="compare-kid" class="fighter-pick">？</p>
+                    <div class="beam-launcher beam-launcher-right" aria-hidden="true"></div>
+                </div>
+            </div>
+
+            <p id="arena-hint" class="arena-hint">兩邊都開獎後，氣功對轟開始！</p>
+        </section>
     </div>
     <script src="script.js"></script>
 </body>
