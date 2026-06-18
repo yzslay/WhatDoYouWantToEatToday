@@ -21,7 +21,7 @@ const drawingButtonText = '開獎中...';
 const loadingButtonText = '載入中...';
 const emptyMenuText = '尚未設定選單';
 const CLASH_WINDUP_MS = 1200;
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 4;
 const BEAM_PUSH_MS = 1500;
 
 let menuEntries = [];
@@ -154,7 +154,7 @@ function resolveBattle() {
         battlePhase = 'ended';
         syncArenaClasses();
         showWinnerState(winnerName, winnerEntry);
-        arenaHint.textContent = `今晚就吃 ${formatPick(winnerEntry)}！`;
+        arenaHint.textContent = `今天就吃 ${formatPick(winnerEntry)}！`;
     }, BEAM_PUSH_MS);
 }
 
