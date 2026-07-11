@@ -1,4 +1,4 @@
-// 料理選單由 vendor.txt 載入（第一欄：料理種類，第二欄：店家）
+// 料理選單：優先 localStorage（edit.html 編輯結果），否則 vendor.txt
 const adultBtn = document.getElementById('adult-btn');
 const kidBtn = document.getElementById('kid-btn');
 const adultDisplay = document.getElementById('adult-display');
@@ -32,27 +32,8 @@ let windupTimer = null;
 let countdownTimer = null;
 let resolveTimer = null;
 
-function parseVendorText(text) {
-    return text
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#'))
-        .map((line) => {
-            const [category, vendor] = line.split('||').map((part) => part.trim());
-            if (!category || !vendor) {
-                return null;
-            }
-            return { category, vendor };
-        })
-        .filter(Boolean);
-}
-
 function formatPick(entry) {
     return `${entry.category} · ${entry.vendor}`;
-}
-
-function isSameEntry(a, b) {
-    return Boolean(a && b && a.category === b.category && a.vendor === b.vendor);
 }
 
 function getAvailableEntries(excludeEntry) {
@@ -269,23 +250,22 @@ async function loadMenuEntries() {
     setButtonsEnabled(false);
 
     try {
-        const response = await fetch('vendor.txt');
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        menuEntries = parseVendorText(await response.text());
-        if (menuEntries.length === 0) {
-            throw new Error('No valid entries');
-        }
+        const result = await loadMenuEntriesFromSource();
+        menuEntries = result.entries;
 
         adultDisplay.textContent = '？ ？ ？';
         kidDisplay.textContent = '？ ？ ？';
         adultVendor.textContent = '';
         kidVendor.textContent = '';
         setButtonsEnabled(true);
+
+        if (result.source === 'local') {
+            arenaHint.textContent = `已載入本機編輯選單（${menuEntries.length} 筆）。兩邊各抽一種料理後氣功對決！`;
+        } else {
+            arenaHint.textContent = '兩邊各抽一種料理，不可重複，開獎後氣功對決！';
+        }
     } catch (error) {
-        console.error('Failed to load vendor.txt', error);
+        console.error('Failed to load menu', error);
         showMenuLoadError();
     }
 }

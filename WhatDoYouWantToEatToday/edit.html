@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯選單 · 用餐一番賞</title>
+    <link rel="icon" href="Gemini_Generated_Image_sq3ilzsq3ilzsq3i.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="edit.css">
+</head>
+<body class="edit-page">
+    <div class="container edit-container">
+        <header class="brand-header">
+            <h1 class="brand-title">選單編輯</h1>
+            <p class="brand-tagline">VENDOR EDITOR</p>
+            <nav class="page-nav">
+                <a class="nav-link" href="index.html">← 回抽籤頁</a>
+            </nav>
+        </header>
+
+        <section class="edit-panel" aria-label="選單編輯">
+            <p id="edit-status" class="edit-status" role="status">載入中…</p>
+
+            <div class="edit-notice">
+                <strong>關於儲存：</strong>
+                <code>python -m http.server</code> 無法直接改硬碟上的
+                <code>vendor.txt</code>。此頁會把變更存在<strong>瀏覽器 localStorage</strong>，
+                抽籤頁會優先使用。若要寫回專案／上傳 GitHub，請按「下載 vendor.txt」後覆蓋檔案再 commit。
+            </div>
+
+            <form id="entry-form" class="entry-form" autocomplete="off">
+                <input type="hidden" id="edit-index" value="">
+                <label class="field">
+                    <span>料理種類</span>
+                    <input id="category-input" type="text" maxlength="40" placeholder="例：牛肉麵" required>
+                </label>
+                <label class="field">
+                    <span>店家名稱</span>
+                    <input id="vendor-input" type="text" maxlength="60" placeholder="例：天東八六" required>
+                </label>
+                <div class="form-actions">
+                    <button type="submit" id="save-entry-btn" class="spin-btn edit-btn">新增品項</button>
+                    <button type="button" id="cancel-edit-btn" class="ghost-btn" hidden>取消編輯</button>
+                </div>
+            </form>
+
+            <div class="toolbar">
+                <button type="button" id="persist-btn" class="spin-btn edit-btn">儲存到本機瀏覽器</button>
+                <button type="button" id="download-btn" class="ghost-btn">下載 vendor.txt</button>
+                <button type="button" id="reload-file-btn" class="ghost-btn">還原為檔案版</button>
+            </div>
+
+            <div class="list-meta">
+                <span id="entry-count">共 0 筆</span>
+                <input id="search-input" type="search" placeholder="搜尋料理或店家…" aria-label="搜尋">
+            </div>
+
+            <ul id="entry-list" class="entry-list" aria-label="目前選單"></ul>
+        </section>
+    </div>
+
+    <script src="menu.js"></script>
+    <script src="edit.js"></script>
+</body>
+</html>

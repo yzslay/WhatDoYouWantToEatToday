@@ -37,6 +37,27 @@ body::before {
     margin-bottom: 34px;
 }
 
+.page-nav {
+    margin-top: 10px;
+}
+
+.nav-link {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 2px solid #1a2a4a;
+    background: rgba(255, 255, 255, 0.75);
+    color: #1a2a4a;
+    font-weight: 800;
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+    background: #fff;
+}
+
 .brand-title {
     margin: 0 0 6px;
     font-size: clamp(2.8rem, 8vw, 4rem);
